@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="uk" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест: Microsoft Word - Робота з таблицями</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-500 selection:text-white">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-table"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-slate-900 leading-tight">Word: Робота з таблицями</h1>
+                    <p class="text-xs text-slate-500">Інтерактивний тест (16 питань)</p>
+                </div>
+            </div>
+            <!-- Timer widget -->
+            <div class="flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                <i class="fa-regular fa-clock text-blue-600 text-sm"></i>
+                <span id="timer" class="font-mono font-semibold text-slate-700 text-sm">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 flex-grow flex flex-col justify-center">
+        <div id="progress-container" class="mb-6">
+            <div class="flex justify-between items-center mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span>Питання <span id="current-question-num" class="text-blue-600 font-bold">1</span> з <span id="total-questions-num">16</span></span>
+                <span id="progress-percent" class="text-blue-600">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-blue-600 h-full transition-all duration-300 ease-out" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Question Card Component -->
+        <div id="quiz-card" class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 sm:p-8 transition-all duration-300">
+            <!-- Dynamic Question Content -->
+        </div>
+
+        <!-- Results Card (Hidden Initially) -->
+        <div id="results-card" class="hidden bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 sm:p-8 text-center">
+            <!-- Dynamic Score Content -->
+        </div>
+    </main>
+
+    <footer id="quiz-footer" class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center space-x-2">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>Назад</span>
+            </button>
+
+            <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition duration-150 shadow-md shadow-blue-500/20 flex items-center space-x-2">
+                <span>Далі</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                type: 'single',
+                title: 'Заповніть пропуск: [...] — це графічний об\'єкт текстового документа, який складається із стовпців і рядків на перетині яких знаходяться комірки.',
+                options: ['Таблиця', 'Форма', 'Звіт'],
+                correct: 0
+            },
+            {
+                id: 2,
+                type: 'multiple',
+                title: 'З яких елементів складається таблиця? (Оберіть усі правильні відповіді)',
+                options: ['Стовпці', 'Рядки', 'Поля', 'Міжрядковий інтервал'],
+                correct: [0, 1]
+            },
+            {
+                id: 3,
+                type: 'multiple',
+                title: 'Вибрати із запропонованих реально існуючі способи додавання таблиці в Word. (Оберіть усі правильні)',
+                options: [
+                    'Графічний спосіб додавання таблиці',
+                    'Командний спосіб додавання таблиці',
+                    'Емпіричний спосіб додавання таблиці',
+                    'Криптографічний спосіб додавання таблиці'
+                ],
+                correct: [0, 1]
+            },
+            {
+                id: 4,
+                type: 'single',
+                title: 'Який спосіб додавання таблиці представлено на зображенні (інтерактивна сітка)?',
+                svgImage: `
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl my-4 max-w-sm mx-auto shadow-inner flex flex-col items-center">
+                        <div class="text-xs font-semibold text-slate-500 mb-2">Вставка &gt; Таблиця (5x7)</div>
+                        <div class="grid grid-cols-7 gap-1 bg-white p-2 border border-slate-300 rounded shadow-sm">
+                            <div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div>
+                            <div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div>
+                            <div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div>
+                            <div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-orange-400 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div><div class="w-6 h-6 bg-slate-100 rounded-sm"></div>
+                        </div>
+                    </div>
+                `,
+                options: ['А) Графічний', 'Б) Командний', 'В) Емпіричний', 'Г) Криптографічний'],
+                correct: 0
+            },
+            {
+                id: 5,
+                type: 'single',
+                title: 'Який спосіб додавання таблиці представлено на зображенні (вікно "Вставлення таблиці" із заданням кількості стовпців і рядків)?',
+                svgImage: `
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl my-4 max-w-sm mx-auto shadow-inner text-xs font-mono text-slate-700 bg-white">
+                        <div class="border-b pb-1 mb-2 font-bold text-slate-900 flex justify-between"><span>Вставлення таблиці</span><span>×</span></div>
+                        <div class="mb-1 text-slate-500 font-semibold">Розмір таблиці</div>
+                        <div class="flex justify-between items-center mb-1"><span>Кількість стовпців:</span> <span class="bg-slate-100 border px-2 py-0.5 rounded">5</span></div>
+                        <div class="flex justify-between items-center mb-2"><span>Кількість рядків:</span> <span class="bg-slate-100 border px-2 py-0.5 rounded">2</span></div>
+                    </div>
+                `,
+                options: ['А) Графічний', 'Б) Командний', 'В) Емпіричний', 'Г) Криптографічний'],
+                correct: 1
+            },
+            {
+                id: 6,
+                type: 'single',
+                title: 'За допомогою якої вкладки головного меню до документа можна додати таблицю?',
+                options: ['А) Вставка', 'Б) Головна', 'В) Розмітка сторінки', 'Г) Макет'],
+                correct: 0
+            },
+            {
+                id: 7,
+                type: 'single',
+                title: 'Який тип вкладки представлений на зображенні ("Конструктор", "Макет" під заголовком "Робота з таблицями")?',
+                svgImage: `
+                    <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl my-4 max-w-md mx-auto shadow-inner text-center">
+                        <div class="bg-blue-900 text-white text-xs py-1 rounded-t font-semibold">Робота з таблицями</div>
+                        <div class="flex bg-white border border-t-0 p-2 justify-center space-x-2 text-xs font-bold">
+                            <span class="bg-blue-600 text-white px-3 py-1 rounded">Конструктор</span>
+                            <span class="text-slate-600 px-3 py-1">Макет</span>
+                        </div>
+                    </div>
+                `,
+                options: [
+                    'А) Контекстна вкладка робота з таблицями',
+                    'Б) Основна вкладка робота з таблицями',
+                    'В) Контекстна вкладка робота із зображеннями',
+                    'Г) Основна вкладка робота із зображеннями'
+                ],
+                correct: 0
+            },
+            {
+                id: 8,
+                type: 'multiple',
+                title: 'За допомогою яких вкладок можна форматувати таблицю в MS Word? (Оберіть усі правильні)',
+                options: ['Конструктор', 'Макет', 'Формат', 'Розмітка сторінки'],
+                correct: [0, 1]
+            },
+            {
+                id: 9,
+                type: 'single',
+                title: 'Для того щоб вводити дані у таблицю, потрібно клікнути лівою клавішею миші всередину...',
+                options: ['клітинки', 'робочого листа', 'рядку стану'],
+                correct: 0
+            },
+            {
+                id: 10,
+                type: 'single',
+                title: 'Для послідовного переміщення курсора по клітинках таблиці можна скористатися клавішею [Tab] (наступна клітинка) або [...] (попередня клітинка).',
+                options: ['Shift+Tab', 'Ctrl+Tab', 'Alt+Tab'],
+                correct: 0
+            },
+            {
+                id: 11,
+                type: 'single',
+                title: 'Перемістити вказівник до лівої межі клітинки, коли вказівник набуде вигляду нахиленої стрілки — клікнути лівою клавішею миші по клітинці. Це:',
+                options: ['виділення однієї клітинки таблиці', 'виділення одного рядка таблиці', 'виділення одного стовпця таблиці', 'виділення всієї таблиці'],
+                correct: 0
+            },
+            {
+                id: 12,
+                type: 'single',
+                title: 'Перемістити вказівник до лівої зовнішньої межі рядка, коли вказівник набуде вигляду стрілки праворуч — клікнути лівою клавішею миші по першій клітинці рядка. Це:',
+                options: ['виділення одного рядка таблиці', 'виділення однієї клітинки таблиці', 'виділення одного стовпця таблиці', 'виділення всієї таблиці'],
+                correct: 0
+            },
+            {
+                id: 13,
+                type: 'single',
+                title: 'Перемістити вказівник до верхньої зовнішньої межі стовпця, коли вказівник набуде вигляду стрілки вниз — клікнути лівою клавішею миші по першій клітинці стовпця. Це:',
+                options: ['виділення одного стовпця таблиці', 'виділення однієї клітинки таблиці', 'виділення одного рядка таблиці', 'виділення всієї таблиці'],
+                correct: 0
+            },
+            {
+                id: 14,
+                type: 'single',
+                title: 'Зробити таблицю поточною, над її лівим верхнім кутом з\'явиться маркер у вигляді чотирибічної стрілки, клікнути по маркера лівою клавішею миші. Це:',
+                options: ['виділення всієї таблиці', 'виділення одного стовпця таблиці', 'виділення одного рядка таблиці', 'виділення однієї клітинки таблиці'],
+                correct: 0
+            },
+            {
+                id: 15,
+                type: 'single',
+                title: 'Виділити першу клітинку, далі натиснувши ліву кнопку миші, перетягти вказівник до останньої клітинки й відпустити кнопку. Це:',
+                options: ['виділення кількох суміжних об\'єктів', 'виділення кількох не суміжних об\'єктів'],
+                correct: 0
+            },
+            {
+                id: 16,
+                type: 'single',
+                title: 'Виділити один об\'єкт, потім утримуючи натиснутою клавішу Ctrl, виділити решту об\'єктів. Це:',
+                options: ['виділення кількох не суміжних об\'єктів', 'виділення кількох суміжних об\'єктів'],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let userAnswers = {};
+        let startTime = Date.now();
+        let timerInterval;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestion();
+        };
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const seconds = String(elapsed % 60).padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const card = document.getElementById('quiz-card');
+            
+            document.getElementById('current-question-num').textContent = currentQuestion + 1;
+            document.getElementById('total-questions-num').textContent = questions.length;
+            const percent = Math.round((currentQuestion / questions.length) * 100);
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-bar').style.width = percent + '%';
+
+            let html = `
+                <div class="mb-6">
+                    <span class="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">Питання №${currentQuestion + 1}</span>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-snug">${q.title}</h2>
+                </div>
+            `;
+
+            if (q.svgImage) {
+                html += q.svgImage;
+            }
+
+            if (q.type === 'single') {
+                html += `<div class="space-y-3 mt-4">`;
+                q.options.forEach((opt, idx) => {
+                    const isChecked = userAnswers[currentQuestion] === idx ? 'checked' : '';
+                    const borderClass = isChecked ? 'border-blue-500 bg-blue-50/50 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white';
+                    html += `
+                        <label class="flex items-start p-4 rounded-xl border-2 ${borderClass} cursor-pointer transition-all duration-200 group">
+                            <input type="radio" name="q_option" value="${idx}" ${isChecked} onchange="saveAnswer(${idx})" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300">
+                            <span class="ml-3 text-sm sm:text-base text-slate-700 group-hover:text-slate-900 leading-normal">${opt}</span>
+                        </label>
+                    `;
+                });
+                html += `</div>`;
+            } else if (q.type === 'multiple') {
+                html += `<div class="space-y-3 mt-4"><p class="text-xs text-slate-500 italic mb-2"><i class="fa-solid fa-circle-info mr-1"></i>Можна обрати кілька варіантів</p>`;
+                q.options.forEach((opt, idx) => {
+                    const selectedArr = userAnswers[currentQuestion] || [];
+                    const isChecked = selectedArr.includes(idx) ? 'checked' : '';
+                    const borderClass = isChecked ? 'border-blue-500 bg-blue-50/50 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white';
+                    html += `
+                        <label class="flex items-start p-4 rounded-xl border-2 ${borderClass} cursor-pointer transition-all duration-200 group">
+                            <input type="checkbox" name="q_option" value="${idx}" ${isChecked} onchange="saveMultipleAnswer(${idx})" class="mt-1 h-4 w-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
+                            <span class="ml-3 text-sm sm:text-base text-slate-700 group-hover:text-slate-900 leading-normal">${opt}</span>
+                        </label>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            card.innerHTML = html;
+
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.innerHTML = `<span>Завершити тест</span> <i class="fa-solid fa-flag-checkered text-xs"></i>`;
+                nextBtn.className = "px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl transition duration-150 shadow-md shadow-emerald-500/20 flex items-center space-x-2";
+            } else {
+                nextBtn.innerHTML = `<span>Далі</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+                nextBtn.className = "px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition duration-150 shadow-md shadow-blue-500/20 flex items-center space-x-2";
+            }
+        }
+
+        function saveAnswer(val) {
+            userAnswers[currentQuestion] = val;
+            renderQuestion();
+        }
+
+        function saveMultipleAnswer(val) {
+            if (!userAnswers[currentQuestion]) {
+                userAnswers[currentQuestion] = [];
+            }
+            const arr = userAnswers[currentQuestion];
+            const index = arr.indexOf(val);
+            if (index > -1) {
+                arr.splice(index, 1);
+            } else {
+                arr.push(val);
+            }
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            
+            let score = 0;
+            const total = questions.length;
+
+            questions.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                if (q.type === 'single') {
+                    if (userAns === q.correct) score++;
+                } else if (q.type === 'multiple') {
+                    if (Array.isArray(userAns)) {
+                        const sortedUser = [...userAns].sort();
+                        const sortedCorrect = [...q.correct].sort();
+                        if (JSON.stringify(sortedUser) === JSON.stringify(sortedCorrect)) {
+                            score++;
+                        }
+                    }
+                }
+            });
+
+            const percentage = Math.round((score / total) * 100);
+
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('quiz-card').classList.add('hidden');
+            document.getElementById('quiz-footer').classList.add('hidden');
+
+            const resultsCard = document.getElementById('results-card');
+            resultsCard.classList.remove('hidden');
+
+            let badgeColor = 'text-emerald-600 bg-emerald-50 border-emerald-200';
+            let message = 'Чудовий результат! Ви чудово опанували тему роботи з таблицями в Word.';
+            if (percentage < 50) {
+                badgeColor = 'text-rose-600 bg-rose-50 border-rose-200';
+                message = 'Потрібно ще трохи повторити тему про роботу з таблицями в MS Word.';
+            } else if (percentage < 80) {
+                badgeColor = 'text-amber-600 bg-amber-50 border-amber-200';
+                message = 'Непогано, але є над чим попрацювати.';
+            }
+
+            resultsCard.innerHTML = `
+                <div class="py-6">
+                    <div class="w-20 h-20 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Тест завершено!</h2>
+                    <p class="text-slate-600 mb-6">${message}</p>
+                    
+                    <div class="inline-flex flex-col items-center justify-center p-6 rounded-2xl border-2 ${badgeColor} mb-8 shadow-sm">
+                        <span class="text-xs uppercase font-bold tracking-wider mb-1">Ваш результат</span>
+                        <span class="text-4xl font-extrabold">${percentage}%</span>
+                        <span class="text-sm font-medium mt-1">Правильно: ${score} з ${total} питань</span>
+                    </div>
+
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="location.reload()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 transition duration-150 flex items-center space-x-2">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Пройти знову</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
